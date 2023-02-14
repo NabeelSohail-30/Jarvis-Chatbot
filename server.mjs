@@ -2,21 +2,19 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import mongoose from 'mongoose';
-//import dotenv from 'dotenv';
-//import { OpenAIApi, Configuration } from 'openai';
+import dotenv from 'dotenv';
+import { OpenAIApi, Configuration } from 'openai';
 import dialogflow from 'dialogflow'
 import { WebhookClient } from 'dialogflow-fulfillment'
-
-/* const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-const response = await openai.createCompletion({
+/* const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: "hello there\n\nHello there! What can I do for you?",
+    prompt: userPrompt,
     temperature: 0.7,
     max_tokens: 256,
     top_p: 1,
@@ -30,14 +28,6 @@ app.use(cors())
 const port = process.env.PORT || 5001;
 
 /*---------------------APIs--------------------------*/
-
-/* const agent = new WebhookClient({ request: request, response: response });
-
-app.post('/webhook', (request, response) => {
-    console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
-    console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
-    agent.handleRequest(request, response);
-}); */
 
 app.post('/webhook', (request, response) => {
     // Pass the request and response objects to the WebhookClient instance
