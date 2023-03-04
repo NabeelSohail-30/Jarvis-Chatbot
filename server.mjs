@@ -2,48 +2,70 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv'
 import { OpenAIApi, Configuration } from 'openai';
 import dialogflow from 'dialogflow'
 import { WebhookClient } from 'dialogflow-fulfillment'
+
+dotenv.config()
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-/* const response = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: userPrompt,
-    temperature: 0.7,
-    max_tokens: 256,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-}); */
+const textGeneration = async (prompt) => {
+
+    try {
+        const response = await openai.createCompletion({
+            model: 'text-davinci-003',
+            prompt: `Human: ${prompt}\nAI: `,
+            temperature: 0.9,
+            max_tokens: 500,
+            top_p: 1,
+            frequency_penalty: 0,
+            presence_penalty: 0.6,
+            stop: ['Human:', 'AI:']
+        });
+        console.log(response);
+
+        return {
+            status: 1,
+            response: `${response.data.choices[0].text}`
+        };
+    } catch (error) {
+        console.log("error: ", error.response.data);
+        return {
+            status: 0,
+            response: ''
+        };
+    }
+};
 
 const app = express()
 app.use(express.json())
 app.use(cors())
+app.use(urlencoded({ extended: true }));
+app.use(json());
+app.use((req, res, next) => {
+    console.log(`Path ${req.path} with Method ${req.method}`);
+    next();
+});
+
+
+app.get('/', (req, res) => {
+    res.sendStatus(200);
+});
 const port = process.env.PORT || 5001;
 
 /*---------------------APIs--------------------------*/
 
-app.post('/webhook', (request, response) => {
-    // Pass the request and response objects to the WebhookClient instance
-    const agent = new WebhookClient({ request, response });
+app.post('/webhook', async (req, res) => {
 
-    // Add the logic to handle the intent here
-    function Welcome(agent) {
-        agent.add('Welcome from Server');
-    }
+    let result = await textGeneration(req.body.text);
 
-    // Map the intent handler functions to the corresponding intent names
-    let intentMap = new Map();
-    intentMap.set('Welcome', Welcome);
+    res.send({ text: result.response });
 
-    // Pass the intent map to the handleRequest method of the WebhookClient instance
-    agent.handleRequest(intentMap);
 });
 
 
